@@ -2,6 +2,26 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+# 
+1. 패키지 설치
+
+터미널에서 zustand를 설치합니다.
+
+```
+app/
+├── store/
+│   └── useTodoStore.ts          # [신규] Zustand 스토어 (persist 포함)
+├── todos/
+│   ├── new/
+│   │   └── page.tsx             # [수정] 스토어 훅 연결
+│   └── [id]/
+│       ├── edit/
+│       │   └── page.tsx         # [수정] 스토어 훅 연결
+│       └── page.tsx             # [수정] 스토어 훅 연결
+├── layout.tsx                   # [수정] TodoProvider 제거
+└── page.tsx     
+```
+
 First, run the development server:
 
 ```bash
