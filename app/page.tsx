@@ -1,69 +1,83 @@
-import Image from "next/image";
+"use client"
+import Link from "next/link";
+import { useState } from "react";
+import { useTodoStore } from "./store/useTodoStore";
 
 export default function Home() {
+  const todos = useTodoStore((state) => state.todos)
+  const toggleTodo = useTodoStore((state) => state.toggleTodo)
+  const [searchQuery, setSearchQuery] = useState('')
+  //제목, 상세 내용에 검색어가 포함된 할 일 필터링
+  const filteredTodos = todos.filter((todo) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      todo.title.toLowerCase().includes(query) ||
+      todo.description.toLowerCase().includes(query)
+    )
+  })
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div>
+      <header className="flex justify-between items-center mb-6 pb-4 border-b">
+        <h1 className="text-2xl font-bold">전체 할 일</h1>
+        <Link href="/todos/new"
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm 
+        font-medium hover:bg-blue-600 transition">
+          + 새 할 일 추가
+        </Link>
+      </header>
+      {/* 검색 영역 */}
+      <div className="relative mb-6">
+        <input type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="제목 또는 상세내용으로 검색"
+          className="w-full border border-gray-300 rounded-lg pl-4 pr-10
+                      py-2 text-sm focus:outline-none focus:border-blue-500"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+        {
+          searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 
+           text-gray-400 hover:text-gray-600 text-xs" aria-label="검색어 초기화">
+              X
+            </button>
+          )
+        }
+      </div>
+      {
+        todos.length === 0 ? (
+          <p className="text-center text-gray-400 py-10">
+            등록된 할 일이 없습니다. 새 할 일을 추가하세요
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+        ) : filteredTodos.length === 0 ? (
+          <p className="text-center text-gray-400 py-10">{searchQuery}에 대한 검색 결과가 없습니다.</p>
+        ) :
+          (
+            <ul className="space-y-3">
+              {
+                filteredTodos.map((todo) => (
+                  <li key={todo.id}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transiton">
+                    <div className="flex items-center gap-3 flex-1">
+                      <input type="checkbox"
+                        checked={todo.completed}
+                        onChange={() => toggleTodo(todo.id)}
+                        className="w-5 h-5 accent-blue-500 coursor-pointer" />
+                      {/* 제목 클릭 시 상세보기 페이지로 이동 */}
+                      <Link href={`/todos/${todo.id}`}
+                        className={`flex-1 font-medium 
+                        ${todo.completed ? 'line-through text-gray-400'
+                            : 'text-gray-800 hover:text-blue-600'}`}
+                      >{todo.title}</Link>
+                    </div>
+                    <span className="text-xs text-gray-400">{todo.createAt}</span>
+                  </li>
+                ))
+              }
+            </ul>
+          )
+      }
     </div>
   );
 }
